@@ -3,6 +3,18 @@
 from lxml import html
 import shutil
 import requests
+import errno
+import os
+
+def save_dir(p, d='out'):
+    out = os.path.join(d, p)
+    try:
+        os.mkdir(d)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise e
+    print out
+    return out
 
 def get_url(path, base='http://www.vice.com'):
     return '%s/%s' % (base, path)
@@ -27,7 +39,13 @@ def get_id(path):
     return path.split('/')[-1]
 
 def is_do(path):
-    pass
+    res = path.xpath('//*[contains(concat( " ", @class, " " ), concat( " ", "dnd-tagline", " " ))]')[0].text_content().strip()
+    if res == "don't":
+        return False
+    elif res == 'do':
+        return True
+    else:
+        print 'WTF? %s' % res
 
 def download_image(url, destination):
     response = requests.get(url, stream=True)
@@ -53,18 +71,23 @@ def save_results(crawl):
     image_url = crawl['image']
     response = requests.get(image_url, stream=True)
     image_destination = '%s.jpg' % crawl['id']
-    with open(image_destination, 'wb') as handle:
+    with open(save_dir(image_destination), 'wb') as handle:
         shutil.copyfileobj(response.raw, handle)
 
     # save text
     text_destination = '%s.txt' % crawl['id']
-    with open(text_destination, 'w') as handle:
+    with open(save_dir(text_destination), 'w') as handle:
         print >> handle, crawl['description']
 
     # save do or dont status
     do_or_dont = '%s.status' % crawl['id']
+    with open(save_dir(do_or_dont), 'w') as handle:
+        print >> handle, crawl['do']
+
+    return crawl
 
 
+# start crawling
 path = '/dnd'
 while True:
     resp = do_a_crawling(path)
