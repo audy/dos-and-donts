@@ -26,6 +26,9 @@ def get_body(page):
 def get_id(path):
     return path.split('/')[-1]
 
+def is_do(path):
+    pass
+
 def download_image(url, destination):
     response = requests.get(url, stream=True)
     with open(destination, 'wb') as out_file:
@@ -41,6 +44,7 @@ def do_a_crawling(path):
             'image': get_image(body),
             'description': get_description(body),
             'next_path': get_next_path(body),
+            'do': is_do(body)
             }
 
 def save_results(crawl):
@@ -52,11 +56,13 @@ def save_results(crawl):
     with open(image_destination, 'wb') as handle:
         shutil.copyfileobj(response.raw, handle)
 
-    text_destination = '%s.txt'
-
     # save text
+    text_destination = '%s.txt' % crawl['id']
     with open(text_destination, 'w') as handle:
         print >> handle, crawl['description']
+
+    # save do or dont status
+    do_or_dont = '%s.status' % crawl['id']
 
 
 path = '/dnd'
