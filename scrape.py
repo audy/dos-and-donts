@@ -5,6 +5,7 @@ import shutil
 import requests
 import errno
 import os
+import unicodedata
 
 def save_dir(p, d='out'):
     out = os.path.join(d, p)
@@ -13,7 +14,6 @@ def save_dir(p, d='out'):
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise e
-    print out
     return out
 
 def get_url(path, base='http://www.vice.com'):
@@ -24,7 +24,8 @@ def get_image(body):
     return image.items()[0][1]
 
 def get_description(body):
-    return body.xpath('//p')[1].text_content()
+    res = body.xpath('//p')[1].text_content()
+    return unicodedata.normalize('NFKD', unicode(res)).encode('ascii', 'ignore')
 
 def get_next_path(body):
     return body.xpath('//*[contains(concat( " ", @class, " " ), concat( " ", "right", " " ))]')[1].values()[0]
@@ -90,10 +91,9 @@ def save_results(crawl):
 # start crawling
 path = '/dnd'
 while True:
+    print path
     resp = do_a_crawling(path)
     path = resp['next_path']
     crawl = do_a_crawling(path)
-
-    print crawl
-
     save_results(crawl)
+    print crawl['description']
