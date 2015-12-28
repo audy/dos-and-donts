@@ -1,6 +1,6 @@
 # dos and donts
 
-Scrape the Dos and Don'ts from Vice Magazine
+Scrape the DOs and DONTs from VICE
 
 ---
 
